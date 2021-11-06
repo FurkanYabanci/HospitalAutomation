@@ -17,8 +17,11 @@ import com.proje.model.Clinic;
 import com.proje.model.HeadPhysician;
 import com.proje.repository.ClinicRepository;
 import com.proje.repository.UserRepository;
+import com.proje.repository.WorkerRepository;
 import com.proje.repository.impl.ClinicRepositoryImpl;
 import com.proje.repository.impl.UserRepositoryImpl;
+import com.proje.repository.impl.WorkerRepositoryImpl;
+
 import java.awt.Color;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -59,6 +62,7 @@ public class HeadPhysicianGUI extends JFrame {
 	private JPopupMenu clinicMenu;
 	private UserRepository userRepository = new UserRepositoryImpl();
 	private ClinicRepository clinicRepository = new ClinicRepositoryImpl();
+	private WorkerRepository workerRepository = new WorkerRepositoryImpl();
 	private JTable table_clinic;
 	private JTextField fld_clinicName;
 	private JTable table_worker;
@@ -116,6 +120,15 @@ public class HeadPhysicianGUI extends JFrame {
 			clinicData[1] = clinicRepository.getClinicList().get(i).getName();
 			clinicModel.addRow(clinicData);
 		}
+
+		// table_worker Model
+		DefaultTableModel workerModel = new DefaultTableModel();
+		Object[] colWorkerName = new Object[2];
+		colWorkerName[0] = "ID";
+		colWorkerName[1] = "Ad Soyad";
+		workerModel.setColumnIdentifiers(colWorkerName);
+
+		Object[] workerData = new Object[2];
 
 		setResizable(false);
 		setTitle("Hastane Yönetim Sistemi");
@@ -193,13 +206,13 @@ public class HeadPhysicianGUI extends JFrame {
 						fld_doctorName.setText(null);
 						fld_doctorPass.setText(null);
 						fld_doctorTcno.setText(null);
-						updateComboBox();
 						try {
 							updateDoctorModel();
 						} catch (SQLException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
+						updateComboBox();
 					} else {
 						Helper.showMessage("Bu TC numarasý ile kayýtlý biri bulunmaktadýr!");
 					}
@@ -234,13 +247,13 @@ public class HeadPhysicianGUI extends JFrame {
 						if (control) {
 							Helper.showMessage("Ýþlem baþarýlý");
 							fld_doctorID.setText(null);
-							updateComboBox();
 							try {
 								updateDoctorModel();
 							} catch (SQLException e1) {
 								// TODO Auto-generated catch block
 								e1.printStackTrace();
 							}
+							updateComboBox();
 						}
 					}
 				}
@@ -283,6 +296,7 @@ public class HeadPhysicianGUI extends JFrame {
 					String doctorTc = table_doctor.getValueAt(table_doctor.getSelectedRow(), 2).toString();
 					String doctorPass = table_doctor.getValueAt(table_doctor.getSelectedRow(), 3).toString();
 					userRepository.updateDoctor(doctorID, doctorName, doctorTc, doctorPass);
+					updateComboBox();
 				}
 
 			}
@@ -409,21 +423,41 @@ public class HeadPhysicianGUI extends JFrame {
 		w_clinic.add(btn_addClinic);
 
 		select_doctor = new JComboBox();
-
 		select_doctor.setBounds(275, 262, 156, 39);
 		updateComboBox();
-
 		select_doctor.addActionListener(e -> {
 			JComboBox c = (JComboBox) e.getSource();
 			Item item = (Item) c.getSelectedItem();
-			System.out.println(item.getKey() + " : " + item.getValue());
 		});
 		w_clinic.add(select_doctor);
 
 		JButton btn_addWorker = new JButton("Ekle");
 		btn_addWorker.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
+				int selRow = table_clinic.getSelectedRow(); // Seçtiðimiz satýrý int bir deðere atadýk.
+				if (selRow >= 0) { // Satýrda bir deðer varsa
+					String selClinic = table_clinic.getModel().getValueAt(selRow, 0).toString(); // Seçilen satýrýn ilk
+																									// sütununun
+																									// deðerini tuttuk.
+					int selClinicID = Integer.parseInt(selClinic); // int'e çevirdik
+					Item doctorItem = (Item) select_doctor.getSelectedItem();
+					boolean control = workerRepository.saveWorker(doctorItem.getKey(), selClinicID);
+					if (control) {
+						Helper.showMessage("success");
+						DefaultTableModel clearModel = (DefaultTableModel) table_worker.getModel();
+						clearModel.setRowCount(0);
+						for (int i = 0; i < userRepository.findUserJoinWorkerByClinicId(selClinicID).size(); i++) {
+							workerData[0] = userRepository.findUserJoinWorkerByClinicId(selClinicID).get(i).getId();
+							workerData[1] = userRepository.findUserJoinWorkerByClinicId(selClinicID).get(i).getName();
+							workerModel.addRow(workerData);
+						}
+						table_worker.setModel(workerModel);
+					} else {
+						Helper.showMessage("error");
+					}
+				} else {
+					Helper.showMessage("Lütfen bir klinik seçiniz !");
+				}
 			}
 		});
 		btn_addWorker.setFont(new Font("Yu Gothic UI Semibold", Font.PLAIN, 16));
@@ -438,7 +472,21 @@ public class HeadPhysicianGUI extends JFrame {
 		JButton btn_selectWorker = new JButton("Seç");
 		btn_selectWorker.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
+				int selRow = table_clinic.getSelectedRow();
+				if (selRow >= 0) {
+					String selClinic = table_clinic.getModel().getValueAt(selRow, 0).toString();
+					int selClinicID = Integer.parseInt(selClinic);
+					DefaultTableModel clearModel = (DefaultTableModel) table_worker.getModel();
+					clearModel.setRowCount(0);
+					for (int i = 0; i < userRepository.findUserJoinWorkerByClinicId(selClinicID).size(); i++) {
+						workerData[0] = userRepository.findUserJoinWorkerByClinicId(selClinicID).get(i).getId();
+						workerData[1] = userRepository.findUserJoinWorkerByClinicId(selClinicID).get(i).getName();
+						workerModel.addRow(workerData);
+					}
+					table_worker.setModel(workerModel);
+				} else {
+					Helper.showMessage("Lütfen bir poliklinik seçiniz !");
+				}
 			}
 		});
 		btn_selectWorker.setFont(new Font("Yu Gothic UI Semibold", Font.PLAIN, 16));

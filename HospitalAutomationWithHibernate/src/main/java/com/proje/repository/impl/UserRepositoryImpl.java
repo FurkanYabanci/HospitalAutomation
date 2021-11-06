@@ -44,6 +44,21 @@ public class UserRepositoryImpl implements UserRepository {
 		this.transaction.commit();
 		return users;
 	}
+
+	@Override
+	public List<User> findUserJoinWorkerByClinicId(int clinic_id) {
+		this.transaction.begin();
+		TypedQuery<User> typedQuery = (TypedQuery<User>) this.entityManager.createQuery(
+				"SELECT U FROM Worker W LEFT JOIN User U ON W.user_id = U.id WHERE W.clinic_id = :clinic_id");
+		typedQuery.setParameter("clinic_id", clinic_id);
+		List<User> users = typedQuery.getResultList();
+		for (User user : users) {
+			this.entityManager.refresh(user);
+		}
+		this.transaction.commit();
+		return users;
+	}
+
 	@Override
 	public boolean saveDoctor(String name, String tcno, String password) {
 		this.transaction.begin();
@@ -104,6 +119,35 @@ public class UserRepositoryImpl implements UserRepository {
 		user.setType(UserType.doktor);
 		this.entityManager.merge(user);
 		key = 1;
+		this.transaction.commit();
+		if (key == 1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean registerPatient(String tcno, String password, String name) {
+		this.transaction.begin();
+		int key = 0;
+		int count = 0;
+		TypedQuery<User> typedQuery = (TypedQuery<User>) entityManager
+				.createQuery("SELECT U FROM User U WHERE U.tcno = :tcno");
+		typedQuery.setParameter("tcno", tcno);
+		List<User> users = typedQuery.getResultList();
+		for (User user : users) {
+			count++;
+		}
+		if (count == 0) {
+			User user = new User();
+			user.setName(name);
+			user.setPassword(password);
+			user.setTcno(tcno);
+			user.setType(UserType.hasta);
+			this.entityManager.persist(user);
+			key = 1;
+		}
 		this.transaction.commit();
 		if (key == 1) {
 			return true;

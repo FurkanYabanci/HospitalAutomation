@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import com.proje.helper.Helper;
+import com.proje.model.Doctor;
 import com.proje.model.HeadPhysician;
 import com.proje.model.User;
 import com.proje.model.UserType;
@@ -166,6 +167,17 @@ public class LoginGUI extends JFrame {
 								headPhysician.setType(user.getType());
 								HeadPhysicianGUI headPhysicianGUI = new HeadPhysicianGUI(headPhysician);
 								headPhysicianGUI.setVisible(true);
+								dispose();
+							}
+							if (user.getType().equals(UserType.doktor)) {
+								Doctor doctor = new Doctor();
+								doctor.setId(user.getId());
+								doctor.setName(user.getName());
+								doctor.setPassword(user.getPassword());
+								doctor.setTcno(user.getTcno());
+								doctor.setType(user.getType());
+								DoctorGUI doctorGUI = new DoctorGUI(doctor);
+								doctorGUI.setVisible(true);
 								dispose();
 							}
 						}

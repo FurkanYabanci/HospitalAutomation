@@ -12,6 +12,7 @@ import javax.swing.border.EmptyBorder;
 import com.proje.helper.Helper;
 import com.proje.model.Doctor;
 import com.proje.model.HeadPhysician;
+import com.proje.model.Patient;
 import com.proje.model.User;
 import com.proje.model.UserType;
 import com.proje.repository.UserRepository;
@@ -108,7 +109,9 @@ public class LoginGUI extends JFrame {
 		JButton btn_registerPatient = new JButton("Kayýt Ol");
 		btn_registerPatient.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			
+				RegisterGUI registerGUI = new RegisterGUI();
+				registerGUI.setVisible(true);
+				dispose();
 			}
 		});
 		btn_registerPatient.setFont(new Font("Yu Gothic UI Semibold", Font.PLAIN, 16));
@@ -118,6 +121,27 @@ public class LoginGUI extends JFrame {
 		JButton btn_loginPatient = new JButton("Giriþ Yap");
 		btn_loginPatient.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (fld_patientTcno.getText().length() == 0 || fld_patientPass.getText().length() == 0) {
+					Helper.showMessage("fill");
+				}else {
+					List<User> users = userRepository.getUserList();
+					for (User user : users) {
+						if (fld_patientTcno.getText().equals(user.getTcno())
+								&& fld_patientPass.getText().equals(user.getPassword())) {
+							if (user.getType().equals(UserType.hasta)) {
+								Patient patient = new Patient();
+								patient.setId(user.getId());
+								patient.setName(user.getName());
+								patient.setPassword(user.getPassword());
+								patient.setTcno(user.getTcno());
+								patient.setType(user.getType());
+								PatientGUI patientGUI = new PatientGUI(patient);
+								patientGUI.setVisible(true);
+								dispose();
+							}
+						}
+					}
+				}
 			}
 		});
 		btn_loginPatient.setFont(new Font("Yu Gothic UI Semibold", Font.PLAIN, 16));

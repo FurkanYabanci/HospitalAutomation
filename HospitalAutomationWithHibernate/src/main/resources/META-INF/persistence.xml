@@ -5,6 +5,10 @@
 
     <persistence-unit name="persistence-unit" transaction-type="RESOURCE_LOCAL">
     	<class>com.proje.model.User</class>
+    	<class>com.proje.model.Clinic</class>
+    	<class>com.proje.model.Worker</class>
+    	<class>com.proje.model.Whour</class>
+    	<class>com.proje.model.Appointment</class>
 
         <properties>
             <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />

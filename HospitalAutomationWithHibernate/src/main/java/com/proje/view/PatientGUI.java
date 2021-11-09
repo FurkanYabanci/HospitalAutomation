@@ -12,9 +12,11 @@ import com.ibm.icu.text.SimpleDateFormat;
 import com.proje.helper.Helper;
 import com.proje.helper.Item;
 import com.proje.model.Patient;
+import com.proje.repository.AppointmentRepository;
 import com.proje.repository.ClinicRepository;
 import com.proje.repository.UserRepository;
 import com.proje.repository.WhourRepository;
+import com.proje.repository.impl.AppointmentRepositoryImpl;
 import com.proje.repository.impl.ClinicRepositoryImpl;
 import com.proje.repository.impl.UserRepositoryImpl;
 import com.proje.repository.impl.WhourRepositoryImpl;
@@ -42,6 +44,7 @@ public class PatientGUI extends JFrame {
 	private ClinicRepository clinicRepository = new ClinicRepositoryImpl();
 	private UserRepository userRepository = new UserRepositoryImpl();
 	private WhourRepository whourRepository = new WhourRepositoryImpl();
+	private AppointmentRepository appointmentRepository = new AppointmentRepositoryImpl();
 	private JTable table_doctor;
 	private DefaultTableModel doctorModel;
 	private Object[] doctorData = null;
@@ -51,6 +54,8 @@ public class PatientGUI extends JFrame {
 	private int selectDoctorID = 0;
 	private String selectDoctorName = null;
 	private JTable table_appoint;
+	private DefaultTableModel appointModel;
+	private Object[] appointData = null;
 
 	/**
 	 * Launch the application.
@@ -87,6 +92,22 @@ public class PatientGUI extends JFrame {
 		colWhourName[2] = "Saat";
 		whourModel.setColumnIdentifiers(colWhourName);
 		whourData = new Object[3];
+		
+		appointModel = new DefaultTableModel();
+		Object[] colAppointName = new Object[4];
+		colAppointName[0] = "ID";
+		colAppointName[1] = "Doktor";
+		colAppointName[2] = "Tarih";
+		colAppointName[3] = "Saat";
+		appointModel.setColumnIdentifiers(colAppointName);
+		appointData = new Object[4];
+		for(int i = 0; i < appointmentRepository.getAppoitmentListForPatient(patient.getId()).size(); i++) {
+			appointData[0] = appointmentRepository.getAppoitmentListForPatient(patient.getId()).get(i).getId();
+			appointData[1] = appointmentRepository.getAppoitmentListForPatient(patient.getId()).get(i).getDoctor_name();
+			appointData[2] = appointmentRepository.getAppoitmentListForPatient(patient.getId()).get(i).getApp_date();
+			appointData[3] = appointmentRepository.getAppoitmentListForPatient(patient.getId()).get(i).getApp_time();
+			appointModel.addRow(appointData);
+		}
 			
 		setResizable(false);
 		setTitle("Hastane Yönetim Sistemi");
@@ -236,8 +257,24 @@ public class PatientGUI extends JFrame {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
+					boolean control = appointmentRepository.saveAppointment(selectDoctorID, patient.getId(), selectDoctorName, patient.getName(), selDate,selTime);
+					if (control) {
+						Helper.showMessage("success");
+						try {
+							whourRepository.updateWhourStatus(selectDoctorID, selDate, selTime);
+							updateWhourModel(selectDoctorID);
+							updateAppointModel(patient.getId());
+						} catch (SQLException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						}
+						updateWhourModel(selectDoctorID);
+					}else {
+						Helper.showMessage("error");
+					}
 				}
-			}
+			
 		});
 		btn_addAppoint.setFont(new Font("Yu Gothic UI Semibold", Font.PLAIN, 16));
 		btn_addAppoint.setBounds(300, 305, 150, 32);
@@ -251,7 +288,7 @@ public class PatientGUI extends JFrame {
 		w_scrollAppoint.setBounds(10, 10, 691, 336);
 		w_myAppoint.add(w_scrollAppoint);
 		
-		table_appoint = new JTable();
+		table_appoint = new JTable(appointModel);
 		w_scrollAppoint.setViewportView(table_appoint);
 		table_whour.getColumnModel().getColumn(0).setPreferredWidth(5); // ID ve TARÝH kolonlarýndan ID'nin boyunu deðiþtirdik.
 	}
@@ -263,6 +300,18 @@ public class PatientGUI extends JFrame {
 			whourData[1] = whourRepository.getWhourList(doctor_id).get(i).getWdate();
 			whourData[2] = whourRepository.getWhourList(doctor_id).get(i).getWtime();
 			whourModel.addRow(whourData);
+		}
+	}
+	
+	public void updateAppointModel(int patient_id) {
+		DefaultTableModel clearModel = (DefaultTableModel) table_appoint.getModel();
+		clearModel.setRowCount(0);
+		for(int i = 0; i < appointmentRepository.getAppoitmentListForPatient(patient_id).size(); i++) {
+			appointData[0] = appointmentRepository.getAppoitmentListForPatient(patient_id).get(i).getId();
+			appointData[1] = appointmentRepository.getAppoitmentListForPatient(patient_id).get(i).getDoctor_name();
+			appointData[2] = appointmentRepository.getAppoitmentListForPatient(patient_id).get(i).getApp_date();
+			appointData[3] = appointmentRepository.getAppoitmentListForPatient(patient_id).get(i).getApp_time();
+			appointModel.addRow(appointData);
 		}
 	}
 }

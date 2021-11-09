@@ -15,11 +15,15 @@ import com.proje.helper.Helper;
 import com.proje.helper.Item;
 import com.proje.model.Clinic;
 import com.proje.model.HeadPhysician;
+import com.proje.repository.AppointmentRepository;
 import com.proje.repository.ClinicRepository;
 import com.proje.repository.UserRepository;
+import com.proje.repository.WhourRepository;
 import com.proje.repository.WorkerRepository;
+import com.proje.repository.impl.AppointmentRepositoryImpl;
 import com.proje.repository.impl.ClinicRepositoryImpl;
 import com.proje.repository.impl.UserRepositoryImpl;
+import com.proje.repository.impl.WhourRepositoryImpl;
 import com.proje.repository.impl.WorkerRepositoryImpl;
 
 import java.awt.Color;
@@ -63,6 +67,8 @@ public class HeadPhysicianGUI extends JFrame {
 	private UserRepository userRepository = new UserRepositoryImpl();
 	private ClinicRepository clinicRepository = new ClinicRepositoryImpl();
 	private WorkerRepository workerRepository = new WorkerRepositoryImpl();
+	private WhourRepository whourRepository = new WhourRepositoryImpl();
+	private AppointmentRepository appointmentRepository = new AppointmentRepositoryImpl();
 	private JTable table_clinic;
 	private JTextField fld_clinicName;
 	private JTable table_worker;
@@ -247,6 +253,9 @@ public class HeadPhysicianGUI extends JFrame {
 						if (control) {
 							Helper.showMessage("Ýþlem baþarýlý");
 							fld_doctorID.setText(null);
+							whourRepository.deleteWhourByDoctorID(doctorID);
+							appointmentRepository.deleteAppointmentByDoctorID(doctorID);
+							workerRepository.deleteWorkerByDoctorID(doctorID);
 							try {
 								updateDoctorModel();
 							} catch (SQLException e1) {

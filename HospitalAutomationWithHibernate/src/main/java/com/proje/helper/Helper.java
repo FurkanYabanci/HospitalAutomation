@@ -21,6 +21,10 @@ public class Helper {
 			message = "Lütfen tüm alanlarý doldurunuz!";
 			break;
 
+		case "success":
+			message = "Ýþlem baþarýlý !";
+			break;
+			
 		default:
 			message = str;
 			break;
